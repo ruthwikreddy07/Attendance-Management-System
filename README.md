@@ -122,18 +122,34 @@ python attendance.py
 2. Enter the subject name (e.g. `math`) and click **View Attendance**.
 3. The program will scan all past session sheets, calculate the **average attendance percentage** for each student, and display the consolidated master file (`attendance.csv`).
 
+## ⚙️ Deep-Dive: Facial Recognition & LBPH Mechanics
+
+Class Vision utilizes a two-tier biometric processing pipeline combining face detection and texture-based classification:
+
+### 1. Face Detection via Haar Cascades
+The system uses the Viola-Jones object detection framework (`haarcascade_frontalface_default.xml`) to scan frames for facial structures. This works by computing rectangular Haar-like features:
+*   Calculates the difference between the sum of pixels in adjacent rectangular regions.
+*   Uses an **Integral Image** representation to perform feature extraction in constant time ($O(1)$).
+*   Applies a cascade of increasingly complex classifiers to quickly reject non-face windows.
+
+### 2. Texture Classification via LBPH (Local Binary Patterns Histograms)
+Once the face region is cropped and converted to grayscale, the LBPH algorithm processes the image to extract micro-level texture vectors:
+*   **LBP Operator**: Evaluates each pixel in a $3\times3$ neighborhood. If the neighbor's intensity is greater than or equal to the center pixel, it is labeled `1`; otherwise, it is labeled `0`. This yields an 8-bit binary string (e.g., `11001011`), which is converted to its decimal equivalent (0–255).
+*   **Grid Division**: The LBP image is divided into $N\times M$ spatial regions (grids) to preserve local spatial structural information.
+*   **Histogram Computation**: A local histogram of LBP values is computed for each grid representing local texture characteristics.
+*   **Feature Vector**: All local histograms are concatenated into a single master histogram representing the face.
+*   **Matching & Thresholds**: During inference, the Chi-Square distance ($D_{\chi^2}$) between the test face histogram and the trained dataset histograms is computed:
+    $$D_{\chi^2}(x, y) = \sum_{i} \frac{(x_i - y_i)^2}{x_i + y_i}$$
+    A **confidence distance score $< 70$** indicates a successful match, whereas scores above 70 indicate high divergence and are labeled as `Unknown`.
+
 ---
 
-## 🔒 Code Optimizations & Safety Improvements
+## 📈 Tips for Maximizing Accuracy
 
-The following codebase fixes have been deployed:
-1.  **Resolved Drive Root Folder Creation**: Relocated `TrainingImage` folder creation from absolute path (`/TrainingImage`) to safe local workspace directories (`./TrainingImage`).
-2.  **Fixed String Escape Pathing Errors**: Replaced manual backslash string additions (like `f"{path}\ "`) with clean, platform-independent `os.path.join` operations inside `takeImage.py`.
-3.  **Corrected Double Path Merging Crashes**: Resolved the critical bug in `automaticAttedance.py` where a folder path was joined twice (e.g., `Attendance/math/Attendance/math/...`), preventing runtime failures when writing and reading sheet tables.
-4.  **Bulletproofed Dataset File Validation**: Added file format checks and folder existence guards inside `trainImage.py` to filter out stray non-image files and directory structures safely.
-5.  **Removed Hardcoded Paths**: Cleaned up manual check sheet paths in `takemanually.py` that pointed to unavailable user profiles, replacing them with dynamic Windows file system launchers.
-
----
+To obtain the best recognition performance, keep the following environment recommendations in mind:
+*   **Direct Diffused Lighting**: Avoid harsh backlighting or overhead spots that create dramatic shadows on facial contours. 
+*   **Consistent Head Alignment**: When capturing the 50 registration frames via **Take Image**, slowly tilt and rotate your head slightly to capture different facial angles (yaw/pitch).
+*   **Reduce Frame Blur**: Ensure the camera focus is sharp and standard capture distance (approx. 0.5 to 1 meter) is maintained.
 
 ## 📝 License & References
 
