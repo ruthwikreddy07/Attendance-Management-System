@@ -20,19 +20,27 @@ def TrainImage(haarcasecade_path, trainimage_path, trainimagelabel_path, message
 
 
 def getImagesAndLables(path):
-    # imagePath = [os.path.join(path, f) for d in os.listdir(path) for f in d]
-    newdir = [os.path.join(path, d) for d in os.listdir(path)]
-    imagePath = [
-        os.path.join(newdir[i], f)
-        for i in range(len(newdir))
-        for f in os.listdir(newdir[i])
-    ]
     faces = []
     Ids = []
-    for imagePath in imagePath:
-        pilImage = Image.open(imagePath).convert("L")
-        imageNp = np.array(pilImage, "uint8")
-        Id = int(os.path.split(imagePath)[-1].split("_")[1])
-        faces.append(imageNp)
-        Ids.append(Id)
+    if not os.path.exists(path):
+        return faces, Ids
+    
+    for d in os.listdir(path):
+        dir_path = os.path.join(path, d)
+        if os.path.isdir(dir_path):
+            for f in os.listdir(dir_path):
+                if f.lower().endswith((".jpg", ".jpeg", ".png")):
+                    image_file_path = os.path.join(dir_path, f)
+                    try:
+                        filename = os.path.basename(image_file_path)
+                        # Expect format: Name_Enrollment_sampleNum.jpg
+                        parts = filename.split("_")
+                        if len(parts) >= 2:
+                            Id = int(parts[1])
+                            pilImage = Image.open(image_file_path).convert("L")
+                            imageNp = np.array(pilImage, "uint8")
+                            faces.append(imageNp)
+                            Ids.append(Id)
+                    except Exception as e:
+                        print(f"Skipping file {f} due to error: {e}")
     return faces, Ids

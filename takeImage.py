@@ -35,14 +35,10 @@ def TakeImage(l1, l2, haarcasecade_path, trainimage_path, message, err_screen,te
                 for (x, y, w, h) in faces:
                     cv2.rectangle(img, (x, y), (x + w, y + h), (255, 0, 0), 2)
                     sampleNum = sampleNum + 1
+                    img_name = f"{Name}_{Enrollment}_{sampleNum}.jpg"
+                    img_path = os.path.join(path, img_name)
                     cv2.imwrite(
-                        f"{path}\ "
-                        + Name
-                        + "_"
-                        + Enrollment
-                        + "_"
-                        + str(sampleNum)
-                        + ".jpg",
+                        img_path,
                         gray[y : y + h, x : x + w],
                     )
                     cv2.imshow("Frame", img)

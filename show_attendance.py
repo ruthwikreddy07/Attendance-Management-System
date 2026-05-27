@@ -8,14 +8,19 @@ from tkinter import *
 
 def subjectchoose(text_to_speech):
     def calculate_attendance():
-        Subject = tx.get()
+        Subject = tx.get().strip()
         if Subject=="":
             t='Please enter the subject name.'
             text_to_speech(t)
+            return
     
-        filenames = glob(
-            f"Attendance\\{Subject}\\{Subject}*.csv"
-        )
+        search_path = os.path.join("Attendance", Subject, f"{Subject}*.csv")
+        filenames = glob(search_path)
+        if not filenames:
+            t = f"No attendance records found for subject {Subject}."
+            text_to_speech(t)
+            return
+
         df = [pd.read_csv(f) for f in filenames]
         newdf = df[0]
         for i in range(1, len(df)):
@@ -25,12 +30,17 @@ def subjectchoose(text_to_speech):
         for i in range(len(newdf)):
             newdf["Attendance"].iloc[i] = str(int(round(newdf.iloc[i, 2:-1].mean() * 100)))+'%'
             #newdf.sort_values(by=['Enrollment'],inplace=True)
-        newdf.to_csv(f"Attendance\\{Subject}\\attendance.csv", index=False)
+        
+        output_dir = os.path.join("Attendance", Subject)
+        if not os.path.exists(output_dir):
+            os.makedirs(output_dir)
+        output_file = os.path.join(output_dir, "attendance.csv")
+        newdf.to_csv(output_file, index=False)
 
         root = tkinter.Tk()
         root.title("Attendance of "+Subject)
         root.configure(background="black")
-        cs = f"Attendance\\{Subject}\\attendance.csv"
+        cs = output_file
         with open(cs) as file:
             reader = csv.reader(file)
             r = 0
@@ -83,9 +93,11 @@ def subjectchoose(text_to_speech):
             t="Please enter the subject name!!!"
             text_to_speech(t)
         else:
-            os.startfile(
-            f"Attendance\\{sub}"
-            )
+            path = os.path.join("Attendance", sub)
+            if os.path.exists(path):
+                os.startfile(path)
+            else:
+                text_to_speech("No attendance records found for " + sub)
 
 
     attf = tk.Button(

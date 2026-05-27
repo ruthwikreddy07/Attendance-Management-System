@@ -181,19 +181,11 @@ def manually_fill():
 
             def create_csv():
                 df = pd.DataFrame(d)
-                csv_name = (
-                    "Attendance(Manually)/"
-                    + subb
-                    + "_"
-                    + Date
-                    + "_"
-                    + Hour
-                    + "-"
-                    + Minute
-                    + "-"
-                    + Second
-                    + ".csv"
-                )
+                output_dir = "Attendance(Manually)"
+                if not os.path.exists(output_dir):
+                    os.makedirs(output_dir)
+                csv_basename = f"{subb}_{Date}_{Hour}-{Minute}-{Second}.csv"
+                csv_name = os.path.join(output_dir, csv_basename)
                 df.to_csv(csv_name)
                 O = "CSV created Successfully"
                 Notifi.configure(
@@ -296,11 +288,10 @@ def manually_fill():
             MAKE_CSV.place(x=570, y=300)
             # TODO remove check sheet
             def attf():
-                import subprocess
-
-                subprocess.Popen(
-                    r'explorer /select,"C:/Users/patel/OneDrive/Documents/E/FBAS/Attendance(Manually)"'
-                )
+                path = "Attendance(Manually)"
+                if not os.path.exists(path):
+                    os.makedirs(path)
+                os.startfile(path)
 
             attf = tk.Button(
                 MFW,

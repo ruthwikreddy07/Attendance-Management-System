@@ -12,13 +12,9 @@ import tkinter.ttk as tkk
 import tkinter.font as font
 
 haarcasecade_path = "haarcascade_frontalface_default.xml"
-trainimagelabel_path = (
-    "TrainingImageLabel\\Trainner.yml"
-)
+trainimagelabel_path = os.path.join("TrainingImageLabel", "Trainner.yml")
 trainimage_path = "TrainingImage"
-studentdetail_path = (
-    "StudentDetails\\studentdetails.csv"
-)
+studentdetail_path = os.path.join("StudentDetails", "studentdetails.csv")
 attendance_path = "Attendance"
 # for choose subject and fill attendance
 def subjectChoose(text_to_speech):
@@ -117,19 +113,8 @@ def subjectChoose(text_to_speech):
                 path = os.path.join(attendance_path, Subject)
                 if not os.path.exists(path):
                     os.makedirs(path)
-                fileName = (
-                    f"{path}/"
-                    + Subject
-                    + "_"
-                    + date
-                    + "_"
-                    + Hour
-                    + "-"
-                    + Minute
-                    + "-"
-                    + Second
-                    + ".csv"
-                )
+                file_basename = f"{Subject}_{date}_{Hour}-{Minute}-{Second}.csv"
+                fileName = os.path.join(path, file_basename)
                 attendance = attendance.drop_duplicates(["Enrollment"], keep="first")
                 print(attendance)
                 attendance.to_csv(fileName, index=False)
@@ -157,7 +142,7 @@ def subjectChoose(text_to_speech):
                 root = tkinter.Tk()
                 root.title("Attendance of " + Subject)
                 root.configure(background="black")
-                cs = os.path.join(path, fileName)
+                cs = fileName
                 print(cs)
                 with open(cs, newline="") as file:
                     reader = csv.reader(file)
@@ -225,9 +210,11 @@ def subjectChoose(text_to_speech):
             t = "Please enter the subject name!!!"
             text_to_speech(t)
         else:
-            os.startfile(
-                f"Attendance\\{sub}"
-            )
+            path = os.path.join("Attendance", sub)
+            if os.path.exists(path):
+                os.startfile(path)
+            else:
+                text_to_speech("No attendance records found for " + sub)
 
     attf = tk.Button(
         subject,
